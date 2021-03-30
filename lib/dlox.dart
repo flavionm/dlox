@@ -1,11 +1,14 @@
 import 'dart:io';
 
-const int EXIT_USAGE = 64;
+import 'package:dlox/scanner.dart';
+
+const EXIT_USAGE = 64;
+const EXIT_DATAERROR = 65;
 
 void start(List<String> arguments) {
   if (arguments.length > 1) {
     stderr.writeln('Too many positional arguments. Usage: dlox [script]');
-    exit(EXIT_USAGE);
+    exitCode = EXIT_USAGE;
   } else if (arguments.length == 1) {
     runFile(arguments[0]);
   } else {
@@ -15,17 +18,37 @@ void start(List<String> arguments) {
 
 void runFile(String scriptPath) {
   final script = File(scriptPath).readAsStringSync();
-  print(run(script));
+  final result = run(script);
+  if (result == null) {
+    exitCode = EXIT_DATAERROR;
+  } else {
+    stdout.write(result);
+  }
 }
 
 void runPrompt() {
   while (true) {
     final input = stdin.readLineSync();
     if (input == null) break;
-    print(run(input));
+
+    final result = run(input);
+    if (result != null) {
+      stdout.writeln(result);
+    }
   }
 }
 
-String run(String source) {
-  return source;
+String? run(String source) {
+  final tokens = Scanner(source, printError).scanTokens();
+  if (tokens == null) {
+    return null;
+  } else {
+    final buffer = StringBuffer();
+    buffer.writeAll(tokens, '\n');
+    return buffer.toString();
+  }
+}
+
+void printError(int line, String message) {
+  stderr.writeln('Line $line: $message');
 }
