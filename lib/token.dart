@@ -19,15 +19,17 @@ enum TokenType {
   EOF
 }
 
-class Token {
+class Token<T> {
   final TokenType _type;
   final String _lexeme;
-  final Object? _literal;
+  final T _literal;
+
+  T get literal => _literal;
 
   Token(this._type, this._lexeme, this._literal);
 
   @override
   String toString() {
-    return '$_type $_lexeme $_literal';
+    return '$_type $_lexeme ${_literal.toString()}';
   }
 }
