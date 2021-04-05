@@ -94,11 +94,25 @@ class Scanner {
       default:
         if (_isDigit(c)) {
           _scanNumber();
+        } else if (_isAlpha(c)) {
+          _scanIdentifier();
         } else {
           _errorReporter(_line, 'Invalid character $c');
           _error = true;
         }
     }
+  }
+
+  bool _isDigit(String c) {
+    return RegExp(r'^[0-9]$').hasMatch(c);
+  }
+
+  bool _isAlpha(String c) {
+    return RegExp(r'^[a-zA-Z_]$').hasMatch(c);
+  }
+
+  bool _isAlphanumeric(String c) {
+    return _isAlpha(c) || _isDigit(c);
   }
 
   void _scanComment() {
@@ -123,10 +137,6 @@ class Scanner {
     _addToken(TokenType.STRING, _source.substring(_start + 1, _current - 1));
   }
 
-  bool _isDigit(String c) {
-    return RegExp('^[0-9]').hasMatch(c);
-  }
-
   void _scanNumber() {
     while (_isDigit(_peek())) {
       _current++;
@@ -141,6 +151,57 @@ class Scanner {
 
     _addToken(
         TokenType.NUMBER, double.parse(_source.substring(_start, _current)));
+  }
+
+  void _scanIdentifier() {
+    while (_isAlphanumeric(_peek())) {
+      _current++;
+    }
+
+    final token = _source.substring(_start, _current);
+    _addToken(_keywordType(token), null);
+  }
+
+  TokenType _keywordType(String token) {
+    if (_keywordMatcher('and', token)) {
+      return TokenType.AND;
+    } else if (_keywordMatcher('class', token)) {
+      return TokenType.CLASS;
+    } else if (_keywordMatcher('else', token)) {
+      return TokenType.ELSE;
+    } else if (_keywordMatcher('false', token)) {
+      return TokenType.FALSE;
+    } else if (_keywordMatcher('fun', token)) {
+      return TokenType.FUN;
+    } else if (_keywordMatcher('for', token)) {
+      return TokenType.FOR;
+    } else if (_keywordMatcher('if', token)) {
+      return TokenType.IF;
+    } else if (_keywordMatcher('nil', token)) {
+      return TokenType.NIL;
+    } else if (_keywordMatcher('or', token)) {
+      return TokenType.OR;
+    } else if (_keywordMatcher('print', token)) {
+      return TokenType.PRINT;
+    } else if (_keywordMatcher('return', token)) {
+      return TokenType.RETURN;
+    } else if (_keywordMatcher('super', token)) {
+      return TokenType.SUPER;
+    } else if (_keywordMatcher('this', token)) {
+      return TokenType.THIS;
+    } else if (_keywordMatcher('true', token)) {
+      return TokenType.TRUE;
+    } else if (_keywordMatcher('var', token)) {
+      return TokenType.VAR;
+    } else if (_keywordMatcher('while', token)) {
+      return TokenType.WHILE;
+    } else {
+      return TokenType.IDENTIFIER;
+    }
+  }
+
+  bool _keywordMatcher(String keyword, String token) {
+    return RegExp('^$keyword\$').hasMatch(token);
   }
 
   String _peek() {
